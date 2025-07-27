@@ -4,6 +4,8 @@ from tensorflow.keras import layers
 import os  
 import tensorflow_hub as hub
 from tfx.components.trainer.fn_args_utils import FnArgs
+from keras_tuner import HyperParameters
+import keras_tuner
  
 LABEL_KEY = "Sentiment"
 FEATURE_KEY = "Text"
@@ -54,15 +56,16 @@ vectorize_layer = layers.TextVectorization(
  
  
 embedding_dim=16
+
 def model_builder():
-    """Build machine learning model"""
+    # Build machine learning model
     inputs = tf.keras.Input(shape=(1,), name=transformed_name(FEATURE_KEY), dtype=tf.string)
     reshaped_narrative = tf.reshape(inputs, [-1])
     x = vectorize_layer(reshaped_narrative)
     x = layers.Embedding(VOCAB_SIZE, embedding_dim, name="embedding")(x)
     x = layers.GlobalAveragePooling1D()(x)
-    x = layers.Dense(128, activation='relu')(x)
-    x = layers.Dense(64, activation="relu")(x)
+    x = layers.Dense(256, activation='relu')(x)
+    x = layers.Dense(128, activation="relu")(x)
     outputs = layers.Dense(1, activation='sigmoid')(x)
     
     
@@ -78,7 +81,8 @@ def model_builder():
     # print(model)
     model.summary()
     return model 
- 
+    """"""
+
  
 def _get_serve_tf_examples_fn(model, tf_transform_output):
     
@@ -124,6 +128,7 @@ def run_fn(fn_args: FnArgs) -> None:
                 for i in list(train_set)]])
     
     # Build the model
+
     model = model_builder()
     
     

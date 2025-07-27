@@ -4,7 +4,7 @@ FROM tensorflow/serving:latest
 COPY ./serving_model/twittersentiment-model /models/cc-model
 
 # Tambahkan file konfigurasi monitoring
-COPY monitoring_config.txt /config/monitoring_config.config
+COPY ./monitoring/prometheus.config /config/monitoring_config.config
 
 # Tentukan nama model
 ENV MODEL_NAME=cc-model
