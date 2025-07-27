@@ -4,7 +4,7 @@ FROM tensorflow/serving:latest
 COPY ./serving_model/twittersentiment-model /models/cc-model
 
 # Tambahkan file konfigurasi monitoring
-COPY monitoring_config.txt /config/monitoring_config.txt
+COPY monitoring_config.txt /config/monitoring_config.config
 
 # Tentukan nama model
 ENV MODEL_NAME=cc-model
@@ -16,4 +16,4 @@ CMD tensorflow_model_server \
   --rest_api_host=0.0.0.0 \
   --model_name=${MODEL_NAME} \
   --model_base_path=/models/${MODEL_NAME} \
-  --monitoring_config_file=/config/monitoring_config.txt
+  --monitoring_config_file=/config/monitoring_config.config
