@@ -1,19 +1,27 @@
 FROM tensorflow/serving:latest
 
-# Salin model SavedModel
-COPY ./serving_model/twittersentiment-model /models/cc-model
+# Salin model SavedModel ke direktori yang sesuai
+COPY ./serving_model/twittersentiment-model /models/twittersentiment-model
 
-# Tambahkan file konfigurasi monitoring
-COPY ./monitoring/prometheus.config /config/monitoring_config.config
+# Salin konfigurasi Prometheus
+COPY ./monitoring/prometheus.config /model_config/prometheus.config
 
-# Tentukan nama model
-ENV MODEL_NAME=cc-model
+# Set environment variables
+ENV MODEL_NAME=twittersentiment-model
+ENV MODEL_BASE_PATH=/models
+ENV MONITORING_CONFIG=/model_config/prometheus.config
+ENV PORT=8501
 
-# Railway menggunakan variabel $PORT, jadi kita arahkan REST API ke sana
-# dan aktifkan Prometheus endpoint
-CMD tensorflow_model_server \
-  --rest_api_port=$PORT \
-  --rest_api_host=0.0.0.0 \
-  --model_name=${MODEL_NAME} \
-  --model_base_path=/models/${MODEL_NAME} \
-  --monitoring_config_file=/config/monitoring_config.config
+# Buat skrip entrypoint untuk menjalankan tensorflow_model_server dengan monitoring
+RUN echo '#!/bin/bash\n\
+tensorflow_model_server \\\n\
+  --port=8500 \\\n\
+  --rest_api_port=${PORT} \\\n\
+  --rest_api_host=0.0.0.0 \\\n\
+  --model_name=${MODEL_NAME} \\\n\
+  --model_base_path=${MODEL_BASE_PATH}/${MODEL_NAME} \\\n\
+  --monitoring_config_file=${MONITORING_CONFIG} \\\n\
+  "$@"' > /usr/bin/tf_serving_entrypoint.sh && chmod +x /usr/bin/tf_serving_entrypoint.sh
+
+# Gunakan skrip sebagai entrypoint
+ENTRYPOINT ["/usr/bin/tf_serving_entrypoint.sh"]
